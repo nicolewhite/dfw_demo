@@ -1,0 +1,143 @@
+library(RNeo4j)
+
+options(stringsAsFactors = F)
+terminal.a = read.csv("A.csv", na.strings = "")
+terminal.b = read.csv("B.csv", na.strings = "")
+terminal.c = read.csv("C.csv", na.strings = "")
+terminal.d = read.csv("D.csv", na.strings = "")
+terminal.e = read.csv("E.csv", na.strings = "")
+
+data = rbind(terminal.a, 
+             terminal.b, 
+             terminal.c, 
+             terminal.d, 
+             terminal.e)
+
+graph = startGraph("http://localhost:7474/db/data/")
+
+addConstraint(graph, "Place", "name")
+addConstraint(graph, "Terminal", "name")
+addConstraint(graph, "Category", "name")
+addIndex(graph, "Gate", "gate")
+
+a = createNode(graph, "Terminal", name = "A")
+b = createNode(graph, "Terminal", name = "B")
+c = createNode(graph, "Terminal", name = "C")
+d = createNode(graph, "Terminal", name = "D")
+e = createNode(graph, "Terminal", name = "E")
+
+# Terminal A has 39 gates.
+for(i in 1:39) {
+  gate = createNode(graph, "Gate", gate = i)
+  createRel(gate, "IN_TERMINAL", a)
+}
+
+# Terminal B has 49 gates.
+for(i in 1:49) {
+  gate = createNode(graph, "Gate", gate = i)
+  createRel(gate, "IN_TERMINAL", b)
+}
+
+# Terminal C has 39 gates.
+for(i in 1:39) {
+  gate = createNode(graph, "Gate", gate = i)
+  createRel(gate, "IN_TERMINAL", c)
+}
+
+# Terminal D has 40 gates.
+for(i in 1:40) {
+  gate = createNode(graph, "Gate", gate = i)
+  createRel(gate, "IN_TERMINAL", d)
+}
+
+# Terminal E has 38 gates.
+for(i in 1:38) {
+  gate = createNode(graph, "Gate", gate = i)
+  createRel(gate, "IN_TERMINAL", e)
+}
+
+# Add food & drink places and their locations.
+query = "
+MERGE (p:Place {name:{place}})
+MERGE (c:Category {name:{category}})
+MERGE (g:Gate {gate:{gate}})-[:IN_TERMINAL]->(:Terminal {name:{terminal}})
+MERGE (p)-[:IN_CATEGORY]->(c)
+MERGE (p)-[r:AT_GATE]->(g)
+
+FOREACH(a IN (CASE WHEN {additional_info} = 'NA' THEN [] ELSE [{additional_info}] END) |
+  SET r.additional_info = a
+)
+"
+
+tx = newTransaction(graph)
+
+for(i in 1:nrow(data)) {
+  appendCypher(tx,
+               query,
+               place = data$Name[i],
+               category = data$Category[i],
+               gate = data$Gate[i],
+               terminal = data$Terminal[i],
+               additional_info = data$Additional.Info[i])
+}
+
+commit(tx)
+
+# Create ten pretend users.
+addConstraint(graph, "User", "name")
+
+alice = createNode(graph, "User", name = "Alice")
+bob = createNode(graph, "User", name = "Bob")
+charles = createNode(graph, "User", name = "Charles")
+david = createNode(graph, "User", name = "David")
+elaine = createNode(graph, "User", name = "Elaine")
+forrest = createNode(graph, "User", name = "Forrest")
+greta = createNode(graph, "User", name = "Greta")
+hank = createNode(graph, "User", name = "Hank")
+ian = createNode(graph, "User", name = "Ian")
+jan = createNode(graph, "User", name = "Jan")
+
+# Create random friendships.
+users = getLabeledNodes(graph, "User")
+
+query = "
+MATCH (u1:User {name:{user1}})
+MATCH (u2:User {name:{user2}})
+MERGE (u1)-[:FRIENDS_WITH]-(u2)
+"
+
+for(i in 1:(length(users) / 2)) {
+  user1 = users[[i]]$name
+  friends = sample((i+1):length(users), size = sample(3:6, size = 1))
+  for(j in friends) {
+    user2 = users[[j]]$name
+    cypher(graph, 
+           query, 
+           user1 = user1, 
+           user2 = user2)
+  }
+}
+
+# Create random LIKES between Users and Places with random weights.
+places = getLabeledNodes(graph, "Place")
+
+query = "
+MATCH (u:User {name:{user}})
+MATCH (p:Place {name:{place}})
+MERGE (u)-[l:LIKES]->(p)
+SET l.weight = {weight}
+"
+
+for(i in 1:length(users)) {
+  user = users[[i]]$name
+  likes = sample(1:length(places), size = sample(10:20, size = 1))
+  for(j in likes) {
+    place = places[[j]]$name
+    weight = sample(1:10, size = 1)
+    cypher(graph,
+           query,
+           user = user,
+           place = place,
+           weight = weight)
+  }
+}
