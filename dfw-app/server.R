@@ -1,5 +1,6 @@
 library(RNeo4j)
 library(rjson)
+library(shiny)
 
 graph = startGraph("http://localhost:7474/db/data/")
 
@@ -19,9 +20,10 @@ MATCH (p:Place)-[:IN_CATEGORY]->(c:Category),
       (g)-[:IN_TERMINAL]->(t:Terminal)
 WHERE c.name IN {categories} AND t.name = {terminal}
 WITH p, c, g, t
-MATCH (u:User {name:{user}})-[:FRIENDS_WITH]-(friend:User),
+MATCH (u:User)-[:FRIENDS_WITH]-(friend:User),
       (friend)-[:LIKES]->(p)
-WITH p.name AS Name, c.name AS Category, g.gate AS Gate, t.name AS Terminal, COUNT(friend) AS friends
+WHERE u.name = {user}
+WITH p.name AS Name, COUNT(friend) AS friends, c.name AS Category, g.gate AS Gate, t.name AS Terminal
 ORDER BY friends DESC, Name
 RETURN Name, Category, Gate, Terminal
 "
@@ -65,9 +67,10 @@ shinyServer(function(input, output) {
                     &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(g)-[:IN_TERMINAL]->(t:Terminal)<br>
                     WHERE c.name IN %s AND t.name = %s<br>
                     WITH p, c, g, t<br>
-                    MATCH (u:User {name:%s)-[:FRIENDS_WITH]-(friend:User),<br>
+                    MATCH (u:User)-[:FRIENDS_WITH]-(friend:User),<br>
                     &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(friend)-[:LIKES]->(p)<br>
-                    WITH p.name AS Name, c.name AS Category, g.gate AS Gate, t.name AS Terminal, COUNT(friend) AS friends<br>
+                    WHERE u.name = %s<br>
+                    WITH p.name AS Name, COUNT(friend) AS friends, c.name AS Category, g.gate AS Gate, t.name AS Terminal<br>
                     ORDER BY friends DESC<br>
                     RETURN Name, Category, Gate, Terminal
                    </p>",

@@ -1,4 +1,5 @@
 library(RNeo4j)
+library(shiny)
 graph = startGraph("http://localhost:7474/db/data/")
 
 users = getLabeledNodes(graph, "User")
@@ -14,7 +15,7 @@ shinyUI(navbarPage("DFW Food & Drink Finder",
          checkboxGroupInput("categories1",
                             label = "",
                             choices = categories,
-                            selected = c("Coffee", "Power Charging")),
+                            selected = c("Coffee", "Bar")),
          strong("closest to gate"),
          numericInput("gate", 
                       label = "", 
@@ -46,7 +47,7 @@ shinyUI(navbarPage("DFW Food & Drink Finder",
          checkboxGroupInput("categories2",
                             label = "",
                             choices = categories,
-                            selected = c("Coffee", "Power Charging")),
+                            selected = c("Coffee", "Bar")),
          strong("in terminal"),
          selectInput("terminal2", 
                      label = "", 
