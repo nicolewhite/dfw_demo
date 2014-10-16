@@ -30,6 +30,8 @@ RETURN Name, Category, Gate, Terminal
 
 shinyServer(function(input, output) {
   output$proximity_query <- renderUI({
+    # This is just for showing the query in HTML. This is not what a parameterized query looks like.
+    # Just ignore this block.
     text = sprintf("<p style=\"font-family:courier\">
                     MATCH (p:Place)-[:IN_CATEGORY]->(c:Category),<br>
                           &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(p)-[:AT_GATE]->(g:Gate),<br>
@@ -47,6 +49,8 @@ shinyServer(function(input, output) {
   })
   
   output$proximity_result <- renderTable({
+    # This is a parameterized query. It's referring to proximity_query defined above.
+    # See ?cypher in RNeo4j.
     data = cypher(graph, 
                   proximity_query,
                   categories = as.list(input$categories1),
@@ -61,6 +65,8 @@ shinyServer(function(input, output) {
   })
   
   output$friends_query <- renderUI({
+    # This is just for showing the query in HTML. This is not what a parameterized query looks like.
+    # Just ignore this block.
     text = sprintf("<p style=\"font-family:courier\">
                     MATCH (p:Place)-[:IN_CATEGORY]->(c:Category),<br>
                     &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(p)-[:AT_GATE]->(g:Gate),<br>
@@ -81,6 +87,8 @@ shinyServer(function(input, output) {
   })
   
   output$friends_result <- renderTable({
+    # This is a parameterized query. It's referring to friends_query defined above.
+    # See ?cypher in RNeo4j.
     data = cypher(graph, 
                   friends_query,
                   categories = as.list(input$categories2),
