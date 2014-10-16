@@ -2,10 +2,13 @@ library(RNeo4j)
 library(shiny)
 graph = startGraph("http://localhost:7474/db/data/")
 
+# Get users, categories, and terminals.
 users = getLabeledNodes(graph, "User")
 users = sapply(users, function(u) u$name)
 categories = getLabeledNodes(graph, "Category")
 categories = sapply(categories, function(c) c$name)
+terminals = getLabeledNodes(graph, "Terminal")
+terminals = sapply(terminals, function(t) t$name)
 
 shinyUI(navbarPage("DFW Food & Drink Finder",
   tabPanel("Recommend by Proximity",
@@ -15,17 +18,17 @@ shinyUI(navbarPage("DFW Food & Drink Finder",
          checkboxGroupInput("categories1",
                             label = "",
                             choices = categories,
-                            selected = c("Coffee", "Bar")),
+                            selected = sample(categories, 3)),
          strong("closest to gate"),
          numericInput("gate", 
                       label = "", 
-                      value = 10),
+                      value = sample(1:30, 1)),
          br(),
          strong("in terminal"),
          selectInput("terminal1", 
                      label = "", 
-                     choices = list("A", "B", "C", "D", "E"),
-                     selected = "A")
+                     choices = terminals,
+                     selected = sample(terminals, 1))
        ),
        mainPanel(
          h3("Query"),
@@ -42,17 +45,17 @@ shinyUI(navbarPage("DFW Food & Drink Finder",
          selectInput("user",
                      label = "",
                      choices = users,
-                     selected = "Alice"),
+                     selected = sample(users, 1)),
          strong("Show me food & drink places in the following categories"),
          checkboxGroupInput("categories2",
                             label = "",
                             choices = categories,
-                            selected = c("Coffee", "Bar")),
+                            selected = sample(categories, 3)),
          strong("in terminal"),
          selectInput("terminal2", 
                      label = "", 
-                     choices = list("A", "B", "C", "D", "E"),
-                     selected = "A"),
+                     choices = terminals,
+                     selected = sample(terminals, 1)),
          strong("that my friends like.")
        ),
        mainPanel(
