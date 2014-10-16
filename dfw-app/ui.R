@@ -62,6 +62,5 @@ shinyUI(navbarPage("DFW Food & Drink Finder",
          tableOutput("friends_result")
        )
      )
-  ),
-  tabPanel("Recommend by Similarity")
+  )
 ))
