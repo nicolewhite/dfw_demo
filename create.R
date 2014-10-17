@@ -99,6 +99,7 @@ createNode(graph, "User", name = "Jan")
 
 # Create random friendships.
 users = getLabeledNodes(graph, "User")
+users = sapply(users, function(u) u$name)
 
 query = "
 MATCH (u1:User {name:{user1}})
@@ -106,11 +107,13 @@ MATCH (u2:User {name:{user2}})
 MERGE (u1)-[:FRIENDS_WITH]-(u2)
 "
 
-for(i in 1:(length(users) / 2)) {
-  user1 = users[[i]]$name
-  friends = sample((i+1):length(users), size = sample(3:6, size = 1))
+x = 1:length(users)
+
+for(i in x) {
+  user1 = users[i]
+  friends = sample(x[x != i], size = sample(3:5, size = 1))
   for(j in friends) {
-    user2 = users[[j]]$name
+    user2 = users[j]
     cypher(graph, 
            query, 
            user1 = user1, 
@@ -120,6 +123,7 @@ for(i in 1:(length(users) / 2)) {
 
 # Create random LIKES between Users and Places with random weights.
 places = getLabeledNodes(graph, "Place")
+places = sapply(places, function(p) p$name)
 
 query = "
 MATCH (u:User {name:{user}})
@@ -128,11 +132,11 @@ MERGE (u)-[l:LIKES]->(p)
 SET l.weight = {weight}
 "
 
-for(i in 1:length(users)) {
-  user = users[[i]]$name
+for(i in x) {
+  user = users[i]
   likes = sample(1:length(places), size = sample(10:20, size = 1))
   for(j in likes) {
-    place = places[[j]]$name
+    place = places[j]
     weight = sample(1:10, size = 1)
     cypher(graph,
            query,
