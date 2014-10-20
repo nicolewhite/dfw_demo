@@ -19,6 +19,7 @@ MATCH (p:Place)-[:IN_CATEGORY]->(c:Category),
       (p)-[:AT_GATE]->(g:Gate),
       (g)-[:IN_TERMINAL]->(t:Terminal)
 WHERE c.name IN {categories} AND t.name = {terminal}
+WITH p, c, g, t
 MATCH (u:User)-[:FRIENDS_WITH]-(friend:User),
       (friend)-[:LIKES]->(p)
 WHERE u.name = {user}
@@ -71,6 +72,7 @@ shinyServer(function(input, output) {
                     &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(p)-[:AT_GATE]->(g:Gate),<br>
                     &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(g)-[:IN_TERMINAL]->(t:Terminal)<br>
                     WHERE c.name IN %s AND t.name = %s<br>
+                    WITH p, c, g, t<br>
                     MATCH (u:User)-[:FRIENDS_WITH]-(friend:User),<br>
                     &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp(friend)-[:LIKES]->(p)<br>
                     WHERE u.name = %s<br>
